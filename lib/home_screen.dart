@@ -1,5 +1,6 @@
 import 'package:custom_otp_field_demo/widgets/custom_otp_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -48,36 +49,50 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const Text(
+                "Otp demo",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blueAccent,
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: List.generate(
                   6,
                   (index) {
-                    return CustomOtpField(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      previousFocusNode:
-                          index > 0 ? _focusNodes[index - 1] : null,
-                      onChanged: (value) {
-                        // Move to the next field when text is entered and it's not the last field
-                        if (value.isNotEmpty && index < 5) {
-                          _focusNodes[index + 1].requestFocus();
-                        }
-
-                        // Move to the previous field if the user deletes the text
-                        if (value.isEmpty) {
-                          if (_controllers[index].text.isNotEmpty) {
-                            _focusNodes[index].requestFocus();
-
-                            _controllers[index].text.isEmpty
-                                ? _focusNodes[index - 1].requestFocus()
-                                : null;
+                    return RawKeyboardListener(
+                      focusNode: FocusNode(),
+                      // Separate focus node for listening to key events
+                      onKey: (RawKeyEvent event) {
+                        // Check if backspace is pressed
+                        if (event is RawKeyDownEvent &&
+                            event.logicalKey == LogicalKeyboardKey.backspace) {
+                          if (_controllers[index].text.isEmpty && index > 0) {
+                            // Move to the previous field and delete its content
+                            _focusNodes[index - 1].requestFocus();
+                            _controllers[index - 1].clear();
                           }
                         }
-
-                        // Call _getLastOtpFieldValue whenever there's a change
-                        _getLastOtpFieldValue();
                       },
+                      child: CustomOtpField(
+                        controller: _controllers[index],
+                        focusNode: _focusNodes[index],
+                        previousFocusNode:
+                            index > 0 ? _focusNodes[index - 1] : null,
+                        onChanged: (value) {
+                          // Move to the next field when text is entered and it's not the last field
+                          if (value.isNotEmpty && index < 5) {
+                            _focusNodes[index + 1].requestFocus();
+                          }
+                          // Call _getLastOtpFieldValue whenever there's a change
+                          _getLastOtpFieldValue();
+                        },
+                      ),
                     );
                   },
                 ),
