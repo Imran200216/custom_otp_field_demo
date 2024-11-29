@@ -66,14 +66,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         // Move to the previous field if the user deletes the text
                         if (value.isEmpty) {
-                          if (index > 0) {
-                            // Move focus to the previous field
-                            _focusNodes[index - 1].requestFocus();
+                          if (_controllers[index].text.isNotEmpty) {
+                            _focusNodes[index].requestFocus();
 
-                            // Optionally, you can clear the previous field's content if needed
-                            if (_controllers[index - 1].text.isNotEmpty) {
-                              _controllers[index - 1].clear();
-                            }
+                            _controllers[index].text.isEmpty
+                                ? _focusNodes[index - 1].requestFocus()
+                                : null;
                           }
                         }
 
